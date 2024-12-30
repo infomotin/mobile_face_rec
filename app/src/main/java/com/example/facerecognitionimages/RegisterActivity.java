@@ -12,6 +12,7 @@ import androidx.cardview.widget.CardView;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -30,7 +31,10 @@ import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.example.facerecognitionimages.face_recognition.FaceClassifier;
 import com.example.facerecognitionimages.face_recognition.TFLiteFaceRecognition;
@@ -230,7 +234,7 @@ public class RegisterActivity extends AppCompatActivity {
                                             canvas.drawRect(bounds,paint);
                                         }
 
-//                                        imageView.setImageBitmap(mutatedBmp);
+                                        imageView.setImageBitmap(mutatedBmp);
                                     }
                                 })
                         .addOnFailureListener(
@@ -265,8 +269,38 @@ public class RegisterActivity extends AppCompatActivity {
 
        Bitmap croppedFace =  Bitmap.createBitmap(bitmap, bound.left, bound.top, bound.width(), bound.height());
         imageView.setImageBitmap(croppedFace);
-    }
+        croppedFace = Bitmap.createScaledBitmap(croppedFace,160,160,false);
+        FaceClassifier.Recognition recognition = faceClassifier.recognizeImage(croppedFace,true);
+        Log.d("Recognition",recognition.toString());
+        showRegisterDialog(croppedFace,recognition);
 
+//        recognition.getEmbeeding()
+    }
+    public void showRegisterDialog(Bitmap face,FaceClassifier.Recognition recognition){
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.register_face_dialogue);
+        ImageView imageView1 = dialog.findViewById(R.id.dlg_image);
+        EditText editText = dialog.findViewById(R.id.dlg_input);
+        EditText editId = dialog.findViewById(R.id.dlg_input3);
+        Button register = dialog.findViewById(R.id.button2);
+        imageView1.setImageBitmap(face);
+        register.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(editText.getText().toString().equals("") || editId.getText().toString().equals("")){
+                    editText.setError("Entry Name/ID Required");
+                }else {
+                    faceClassifier.register(editText.getText().toString(),recognition);
+                    Toast.makeText(RegisterActivity.this, "Face Registered", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+
+                }
+            }
+        });
+
+
+        dialog.show();
+    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
