@@ -298,7 +298,6 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
 
-
         dialog.show();
     }
     @Override
